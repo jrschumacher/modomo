@@ -343,6 +343,7 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    * 
    * Depreciated for remove instead to be more consistant with the Mongo methods
    * 
+   * @link http://www.mongodb.org/display/DOCS/Removing
    * @depreciated
    */
   public function destroy() {
