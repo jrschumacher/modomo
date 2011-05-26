@@ -391,10 +391,11 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
 	
 		foreach ($methods as $method) {
 			if (strcasecmp(substr($method, 0, 9), 'validates') === 0) {
-				$propertyCall = 'get' . substr($method, 9);
-				if(!$className::$method($this->$propertyCall())) {
+			  $attribute = $this->getter(strtolower(substr($method, 9)));
+				if($this->{$method}($attribute) !== TRUE) {
 					return FALSE;
 				}
+        var_dump($this->{$method}($attribute));
 			}
 		}
 
