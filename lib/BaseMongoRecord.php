@@ -166,8 +166,7 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
   private static function instantiate($document) {
     if($document) {
       $class_name = get_called_class();
-      $obj = new $class_name(array('a' => 'b'), FALSE);
-      return new Model\User($document, FALSE);
+      return new $class_name($document, FALSE);
     }
     
     return NULL;
@@ -184,17 +183,23 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    * @param array $attributes initalizing values
    * @param bool $new whether this record is "new" or existing
    */
-	public function __construct($attributes = array(), $new = TRUE) {
-		$this->new = $new;
+  public function __construct($attributes = array(), $new = TRUE) {
 
-    // Set attributes based using their setters
-    foreach($attributes as $attribute => $value) {
-      $this->setter($attribute, $value);
-    }
-
-    // Trigger after new event
+    // If new
 		if($new) {
+      $this->new = TRUE;
+      
+      // Set attributes based using their setters
+      foreach($attributes as $attribute => $value) {
+        $this->setter($attribute, $value);
+      }
+      
+      // Trigger after new event
 			self::triggerEvent('afterNew', $this);
+    }
+    else {
+      $this->new = FALSE;
+      $this->attributes = $attributes;
     }
 	}
     
