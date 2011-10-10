@@ -29,4 +29,12 @@
      return parent::instantiate($document, $collection);
    }
    
+   protected static function registerEvent($collection, $event, $callback) {
+     return parent::registerEvent($event, $callback, $collection);
+   }
+   
+   protected static function triggerEvent($collection, &$scope, $event) {
+     return parent::registerEvent($scope, $event, $collection);
+   }
+   
  }
