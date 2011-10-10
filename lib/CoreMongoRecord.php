@@ -89,13 +89,42 @@
     }
     
     /**
+     * Is anonymous Mongo Record
+     */
+    protected static function mongoIsAnonymous() {
+      $class_name = get_called_class();
+      if($class_name === 'MongoRecord') {
+        return TRUE;
+      }
+      return FALSE;
+    }
+    
+    /**
      * Get the Mongo collection
+     * 
+     * Will get the collection from the class name.
+     * 
+     * Anonymous MongoRecords use the passed collection name. Note setting the
+     * database for each collection of an anonymous MongoRecord is not possib-
+     * le at the moment.
      * 
      * @return MongoCollection
      */
     protected static function &mongoGetCollection() {
-      if(empty(self::$collection)) {        
-        $collection_name = $class_name = get_called_class(); 
+      $collection_name = get_called_class();
+      $collection =& self::$collection;
+      
+      // Anonymous MongoRecords
+      if(self::mongoIsAnonymous()) {
+        if(!is_array(self::$collection)) {
+          self::$collection = array();
+        }
+        $collection_name = func_get_arg(0);
+        $collection =& self::$collection[$collection_name];
+      }
+      
+      // The collection hasn't been opened
+      if(empty($collection)) {
         
         // Remove namespace
         if(($pos = strrpos($collection_name, '\\')) !== FALSE) {
@@ -117,10 +146,10 @@
           self::$connection->connect();
         }
         
-        self::$collection = self::$connection->selectCollection(self::$database, $collection_name);
+        $collection =& self::$connection->selectCollection(self::$database, $collection_name);
       }
   
-      return self::$collection;
+      return $collection;
     }    
   }
   

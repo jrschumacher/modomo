@@ -7,30 +7,13 @@
  *   - Mongo Record
  *   - Inflector
  * 
+ * @author Ryan Schumacher <https://github.com/jrschumacher/>
  * @author Lu Wang <https://github.com/lunaru/>
- * @version 1.0.1
+ * @version 1.5
  * @package MongoRecord
  */
 
-/**
- * Require Mongo Record Exception
- */
-require_once('MongoRecordExceptions.php');
- 
-/**
- * Require Core Mongo Record
- */
-require_once('CoreMongoRecord.php');
- 
- /**
-  * Require Mongo Record
-  */
-//require_once('MongoRecord.php');
-
-/**
- * Require Inflector
- */
-require_once('Inflector.php');
+namespace MongoRecord;
 
 /**
  * Base Mongo Record, main abstraction layer for the Mongo Record
@@ -48,6 +31,11 @@ require_once('Inflector.php');
  * @package MongoRecord
  */
 abstract class BaseMongoRecord extends CoreMongoRecord {
+  
+  /**
+   * @var array
+   */
+  protected $__meta = array();
   
   /**
    * @uses stores the attributes for the record
@@ -82,11 +70,16 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    * return array $results the docments which were found instantiated as object {@link BaseMongoRecord::instantiate()}
    */
   public static function find($query = array(), $options = array()) {
+    // Anonymous MongoRecord
+    $collection_name = NULL;
+    if(self::mongoIsAnonymous()) {
+      $collection_name = func_get_arg(2);
+    }
+    
     $results = array();
     
     // Find the requested objects
-    $documents = self::mongoGetCollection()->find($query);
-    $className = get_called_class();
+    $documents = self::mongoGetCollection($collection_name)->find($query);
     
     // Sort based on the options
     if(isset($options['sort'])) {
@@ -104,12 +97,12 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
     }
 
     // Set timeout {@link BaseMongoRecord::setFindTimeout()}
-    $documents->timeout($className::$findTimeout);
+    $documents->timeout($collection_name::$findTimeout);
   
     // Instantiate each document found {@link BaseMongoRecord::instantiate()}
     while($documents->hasNext()) {
       $document = $documents->getNext();
-      $results[] = self::instantiate($document);
+      $results[] = self::instantiate($document, $collection_name);
     }
     
     // Return records
@@ -127,11 +120,18 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    * return BaseMongoRecord $results the docments which were found instantiated as object {@link BaseMongoRecord::instantiate()}
    */
   public static function findOne($query = array(), $options = array()) {
+    
+    // Anonymous MongoRecord
+    $collection_name = NULL;
+    if(self::mongoIsAnonymous()) {
+      $collection_name = func_get_arg(2);
+    }
+    
     // Force limit as 1
     $options['limit'] = 1;
 
     // Runs a find query
-    $results = self::find($query, $options);
+    $results = self::find($query, $options, $collection_name);
     
     // Return the record
     if($results) {
@@ -149,11 +149,15 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    * @return int number of records
    */
   public static function count($query = array()) {
+    // Anonymous MongoRecord
+    $collection_name =  NULL;
+    if(self::mongoIsAnonymous()) {
+      $collection_name = func_get_arg(1);
+    }
+    
     // Count the number of documents
-    $collection = self::mongoGetCollection();
-    $count = $collection->count($query);
-
-    return $count;
+    $collection =& self::mongoGetCollection($collection_name);
+    return $collection->count($query);
   }
 
   /**
@@ -163,13 +167,73 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    * @param array result from find query
    * @return mixed returns the record as object or NULL if not found
    */
-  private static function instantiate($document) {
+  protected static function instantiate($document) {
+    // Empty document
     if($document) {
-      $class_name = get_called_class();
-      return new $class_name($document, FALSE);
+      return NULL;
     }
     
-    return NULL;
+    // Anonymous MongoRecord
+    if(self::mongoIsAnonymous()) {
+      $collection_name = func_get_arg(1);
+      return MongoRecord($document, FALSE, $collection_name);
+    }
+    
+    // Instantiate method
+    return new $class_name($document, FALSE);
+  }
+  
+  /**
+   * Register event
+   */
+  public static function registerEvent($event, $callback) {
+    // Anonymous MongoRecord
+    $collection_name = NULL;
+    if(self::mongoIsAnonymous()) {
+      $collection_name = func_get_arg(2);
+      $callbacks =& self::$event_callbacks[$collection_name];
+    }
+    else {
+      $callbacks =& self::$event_callbacks;
+    }
+    
+    // Callable
+    if(!is_callable($callback)) {
+      throw new BaseMongoRecordException('Callback must be callable');
+    }
+    
+    if(empty($callbacks[$event])) {
+      $callbacks[$event] = array();
+    }
+    $callbacks[$event][] = $callback;
+  }
+  
+  /**
+   * Trigger event
+   */
+  protected static function triggerEvent($event, &$scope) {
+    // Anonymous MongoRecord
+    $collection_name = NULL;
+    if(self::mongoIsAnonymous()) {
+      $collection_name = func_get_arg(2);
+      $callbacks =& self::$event_callbacks[$collection_name];
+    }
+    else {
+      $callbacks =& self::$event_callbacks;
+    }
+    
+    if(!empty($callbacks[$event])) {
+      foreach($callbacks[$event] as $callback) {
+        if(is_callable($callback)) {
+          call_user_func($callback, $scope);
+        }
+      }
+    }
+    
+    // Backwards compatibility
+    if(is_callable(array($scope, $event))) {
+      $scope->{$event}();
+    }
   }
   
   /*----- Non-static -----*/
@@ -184,6 +248,17 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    * @param bool $new whether this record is "new" or existing
    */
   public function __construct($attributes = array(), $new = TRUE) {
+    // Get collection name
+    $class_name = get_called_class();
+    
+    // Anonymous MongoRecord
+    $collection_name = NULL;
+    if($class_name === 'MongoRecord') {
+      $collection_name = func_get_arg(2);
+    }
+    
+    $this->__meta['class_name'] = $class_name;
+    $this->__meta['collection_name'] = self::mongoGetCollection($collection_name)->getName();
 
     // If new
 		if($new) {
@@ -195,7 +270,7 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
       }
       
       // Trigger after new event
-			self::triggerEvent('afterNew', $this);
+			self::triggerEvent('afterNew', $this, $this->__meta['collection_name']);
     }
     else {
       $this->new = FALSE;
@@ -278,13 +353,13 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    */
 	public function validate() {
 	  // Trigger before validation event
-	  self::triggerEvent('beforeValidation', $this);
+	  self::triggerEvent('beforeValidation', $this, $this->__meta['collection_name']);
     
     // Check if is valid
 		$is_valid = $this->isValid();
     
     // Trigger after validation event
-		self::triggerEvent('afterValidation', $this);
+		self::triggerEvent('afterValidation', $this, $this->__meta['collection_name']);
     
 		return $is_valid;
 	}
@@ -304,22 +379,22 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
     }
 
     // Trigger before save event
-		self::triggerEvent('beforeSave', $this);
+		self::triggerEvent('beforeSave', $this, $this->__meta['collection_name']);
     
     // Save the object to the mongo collection
-		$collection = self::mongoGetCollection();
+		$collection = self::mongoGetCollection($this->__meta['collection_name']);
 		$collection->save($this->attributes);
     
     // Trigger after save new event
     if($this->new) {
-      self::triggerEvent('afterNewSave', $this);
+      self::triggerEvent('afterNewSave', $this, $this->__meta['collection_name']);
     }
 
     // No longer a new object
 		$this->new = FALSE;
     
     // Trigger after save event
-		self::triggerEvent('afterSave', $this);
+		self::triggerEvent('afterSave', $this, $this->__meta['collection_name']);
 
 		return TRUE;
 	}
@@ -331,16 +406,16 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    */
   public function remove() {
     // Trigger before remove event
-    self::triggerEvent('beforeRemove', $this);
+    self::triggerEvent('beforeRemove', $this, $this->__meta['collection_name']);
 
     // If not a new object then remove it from the mongo collection
     if(!$this->new) {
-      $collection = self::mongoGetCollection();
+      $collection = self::mongoGetCollection($this->__meta['collection_name']);
       $collection->remove(array('_id' => $this->attributes['_id']));
     }
     
     // Trigger after remove event
-    self::triggerEvent('afterRemove', $this);
+    self::triggerEvent('afterRemove', $this, $this->__meta['collection_name']);
   }
 
   /**
@@ -353,7 +428,7 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    */
   public function destroy() {
     trigger_error('BaseMongoRecord::destroy() has been depreciated. Use BaseMongoRecord::remove() instead.', E_USER_DEPRECATED);
-    self::triggerEvent('beforeDestroy', $this);
+    self::triggerEvent('beforeDestroy', $this, $this->__meta['collection_name']);
     $this->remove();
   }
 
@@ -391,8 +466,7 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
    * @return bool is valid 
    */
 	protected function isValid() {
-		$className = get_called_class();
-		$methods = get_class_methods($className);
+		$methods = get_class_methods($this->__meta['class_name']);
 	
 		foreach ($methods as $method) {
 			if (strcasecmp(substr($method, 0, 9), 'validates') === 0) {
@@ -406,40 +480,6 @@ abstract class BaseMongoRecord extends CoreMongoRecord {
 
 		return TRUE; 
 	}
-  
-  /**
-   * Register event
-   */
-  public static function registerEvent($event, $callback) {
-    if(!is_callable($callback)) {
-      throw new BaseMongoRecordException('Callback must be callable');
-    }
-    
-    if(empty(self::$event_callbacks[$event])) self::$event_callbacks[$event] = array();
-    self::$event_callbacks[$event][] = $callback;
-  }
-  
-  /**
-   * Trigger event
-   */
-  protected static function triggerEvent($event, &$scope) {
-    if(!empty(self::$event_callbacks[$event])) {
-      foreach(self::$event_callbacks[$event] as $callback) {
-        if(is_callable($callback)) {
-          call_user_func($callback, $scope);
-        }
-      }
-    }
-    
-    // Backwards compatibility
-    if(is_callable(array($scope, $event))) {
-      $scope->{$event}();
-    }
-  }
-
-	/*----- Core Conventions -----*/
-	
-	// Moved to CoreMongoRecord
 	
 }
 
