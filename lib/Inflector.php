@@ -1,6 +1,7 @@
 <?php
 /* Inflector logic borrowed from CakePHP framework */
 
+namespace MongoRecord;
 
 /* SVN FILE: $Id$ */
 /**

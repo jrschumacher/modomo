@@ -1,5 +1,24 @@
 <?php
+  /**
+   * Mongo Record, a simple Mongo ORM for PHP with ActiveRecord-like features.
+   * 
+   * @author     Ryan Schumacher <https://github.com/jrschumacher/>
+   * @author     Lu Wang <https://github.com/lunaru/>
+   * @license    See LICENSE
+   * @version    1.5
+   */
+
+  namespace MongoRecord;
   
+  /**
+   * Core Mongo Record, core functionality Mongo Record library
+   * 
+   * This class is used to define core functionality, including opening a conn-,
+   * ection to the server, connecting to the database, and selecting the coll-
+   * ection.
+   * 
+   * @package    MongoRecord
+   */
   class CoreMongoRecord {
     
     /**
@@ -32,7 +51,7 @@
      * @param mixed $connection the connection variable either Mongo resource or mongo DSN
      * @param array $options as defined in the link above
      */
-    public static function mongoSetConnection($connection = '', $options = array('connect' => FALSE)) {
+    public static function mongoSetConnection($connection = 'localhost', $options = array('connect' => FALSE)) {
       // If is an existing connection
       if(is_object($connection) && get_class($connection) == 'Mongo') {
         // Set connection if connected
@@ -43,8 +62,8 @@
         
         // Try to connect to connection
         try {
-          $connection->connect();
-          $connection->close();
+          self::$connection->connect();
+          self::$connection->close();
         }
         catch(MongoException $e) {
           throw new CoreMongoRecordException("Could not connect to Mongo server, $connection: {$e->getMessage()}");
@@ -53,7 +72,7 @@
       
       // Connect based on given dsn
       try {
-        self::$connection = new Mongo($connection, $options);
+        self::$connection = new \Mongo($connection, $options);
       }
       catch(MongoException $e) {
         throw new CoreMongoRecordException("Could not connect to Mongo server, $connection: {$e->getMessage()}");
@@ -89,13 +108,42 @@
     }
     
     /**
+     * Is anonymous Mongo Record
+     */
+    protected static function mongoIsAnonymous() {
+      $class_name = get_called_class();
+      if($class_name === 'MongoRecord\MongoRecord') {
+        return TRUE;
+      }
+      return FALSE;
+    }
+    
+    /**
      * Get the Mongo collection
+     * 
+     * Will get the collection from the class name.
+     * 
+     * Anonymous MongoRecords use the passed collection name. Note setting the
+     * database for each collection of an anonymous MongoRecord is not possib-
+     * le at the moment.
      * 
      * @return MongoCollection
      */
     protected static function &mongoGetCollection() {
-      if(empty(self::$collection)) {        
-        $collection_name = $class_name = get_called_class(); 
+      $collection_name = get_called_class();
+      $collection =& self::$collection;
+      
+      // Anonymous MongoRecords
+      if(self::mongoIsAnonymous()) {
+        if(!is_array(self::$collection)) {
+          self::$collection = array();
+        }
+        $collection_name = func_get_arg(0);
+        $collection =& self::$collection[$collection_name];
+      }
+      
+      // The collection hasn't been opened
+      if(empty($collection)) {
         
         // Remove namespace
         if(($pos = strrpos($collection_name, '\\')) !== FALSE) {
@@ -106,22 +154,20 @@
         $collection_name = $inflector->tableize($collection_name);
     
         if(self::$database == NULL) {
-          throw new Exception("BaseMongoRecord::database must be initialized to a proper database string");
+          throw new Exception("CoreMongoRecord::database must be initialized to a proper database string");
         }
     
         if(self::$connection == NULL) {
-          throw new Exception("BaseMongoRecord::connection must be initialized to a valid Mongo object");
+          throw new Exception("CoreMongoRecord::connection must be initialized to a valid Mongo object");
         }
         
         if(!(self::$connection->connected)) {
           self::$connection->connect();
         }
         
-        self::$collection = self::$connection->selectCollection(self::$database, $collection_name);
+        $collection = self::$connection->selectCollection(self::$database, $collection_name);
       }
   
-      return self::$collection;
+      return $collection;
     }    
   }
-  
-?>
