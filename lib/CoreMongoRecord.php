@@ -34,7 +34,9 @@
     /**
      * Mongo collection
      */
-    protected static $collection = NULL;
+    private static $collections = array(
+      '_anonymous' => array()
+    );
     
     /**
      * Mongo find timeout
@@ -137,16 +139,16 @@
      * @return MongoCollection
      */
     protected static function &mongoGetCollection() {
-      $collection_name = get_called_class();
-      $collection =& self::$collection;
+      $class_name = get_called_class();
+        $collection_name = $class_name;
       
       // Anonymous MongoRecords
-      if(self::mongoIsAnonymous()) {
-        if(!is_array(self::$collection)) {
-          self::$collection = array();
-        }
+      if(static::mongoIsAnonymous()) {
         $collection_name = func_get_arg(0);
-        $collection =& self::$collection[$collection_name];
+        $collection =& self::$collections['_anonymous'][$collection_name];
+      }
+      else {     
+        $collection =& self::$collections[$class_name];
       }
       
       // The collection hasn't been opened
