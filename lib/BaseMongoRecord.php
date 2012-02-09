@@ -274,6 +274,13 @@
   		if($new) {
         $this->new = TRUE;
         
+        $current_key = key($attributes);
+        if(strpos($current_key, '$') === 0) {
+          if($current_key === '$intersectArray' && is_array($attributes[$current_key]) && count($attributes[$current_key]) === 2) {
+            $attributes = MongoRecordHelper::intersectArray($attributes[$current_key][0], $attributes[$current_key][1]);
+          }
+        }
+        
         // Set attributes based using their setters
         foreach($attributes as $attribute => $value) {
           $this->setter($attribute, $value);
