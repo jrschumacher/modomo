@@ -15,6 +15,9 @@
   
   /* Require Mongo Record Exception */
   require_once($dir . 'lib/MongoRecordExceptions.php');
+  
+  /* Require Mongo Record Helper */
+  require_once($dir . 'lib/MongoRecordHelper.php');
    
   /* Require Core Mongo Record */
   require_once($dir . 'lib/CoreMongoRecord.php');
