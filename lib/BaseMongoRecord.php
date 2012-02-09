@@ -177,6 +177,7 @@
       }
       
       // Instantiate method
+      $class_name = get_called_class();
       return new $class_name($document, FALSE);
     }
     
