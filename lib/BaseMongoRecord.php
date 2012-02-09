@@ -50,6 +50,18 @@
   	private $new = TRUE;
     
     /**
+     * @uses if data has changed
+     * @var BOOL
+     */
+    private $dirty = FALSE;
+    
+    /**
+     * 
+     * 
+     */
+    protected static $collection = NULL;
+    
+    /**
      * 
      */
     private static $event_callbacks = array();
@@ -477,6 +489,6 @@
   		}
 
   		return TRUE; 
-  	}
+  	} 
   	
   }
