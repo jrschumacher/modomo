@@ -140,7 +140,8 @@
         }
 
         if(is_string($args[0])) {
-          return parent::__construct($args[1], $args[2], $args[0]);
+          parent::__construct($args[1], $args[2], $args[0]);
+          return;
         }
       }
 

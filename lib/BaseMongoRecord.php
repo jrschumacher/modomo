@@ -41,7 +41,7 @@
     /**
      * @var array
      */
-  	public $errors = array();
+  	protected $errors = array();
     
     /**
      * @uses defined upon creation of record
@@ -478,5 +478,28 @@
 
   		return TRUE; 
   	}
+    
+    /**
+     * Get attributes
+     */
+    public function getAttributes($options = array()) {
+      $opts = array_merge(array(
+        'id' => 'object'
+      ), $options);
+      
+      $attributes = $this->attributes;
+      if(isset($opts['id']) && $opts['id'] === 'string') {
+        $attributes['id'] = $attributes['_id']->{'$id'};
+        unset($attributes['_id']); 
+      }
+      return $attributes;
+    }
+    
+    /**
+     * To String
+     */
+    public function __toString() {
+      return json_encode($this->attributes);
+    }
   	
   }
