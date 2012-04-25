@@ -345,6 +345,13 @@
     public function __get($attribute) {
       return $this->getter($attribute);
     }
+    
+    /**
+     * Get all attributes
+     */
+    public function toArray() {
+      return $this->attributes;
+    }
 
     /**
      * Get id of record
@@ -495,11 +502,10 @@
   				if($this->{$method}($attribute) !== TRUE) {
   					return FALSE;
   				}
-          var_dump($this->{$method}($attribute));
   			}
   		}
 
   		return TRUE; 
-  	} 
+  	}
   	
   }
