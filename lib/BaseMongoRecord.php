@@ -279,6 +279,10 @@
           if($current_key === '$intersectArray' && is_array($attributes[$current_key]) && count($attributes[$current_key]) === 2) {
             $attributes = MongoRecordHelper::intersectArray($attributes[$current_key][0], $attributes[$current_key][1]);
           }
+          
+          if($current_key === '$merge' && is_array($attributes[$current_key]) && count($attributes[$current_key]) == 2) {
+            $attributes = MongoRecordHelper::mergeArray($attributes[$current_key][0], $attributes[$current_key][1]);
+          }
         }
         
         // Set attributes based using their setters
