@@ -30,7 +30,9 @@
     /**
      * @var array
      */
-    protected $__meta = array();
+    protected $__meta = array(
+      'strict_schema' => FALSE
+    );
     
     /**
      * @uses stores the attributes for the record
@@ -469,6 +471,10 @@
         $this->{$method}($value);
       }
       else {
+        if($this->__meta['strict_schema'] === TRUE && !isset($this->attributes[$attribute])) {
+          return FALSE;
+        }
+        
         $this->attributes[$attribute] = $value;
       }
     }
