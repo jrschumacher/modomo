@@ -34,7 +34,9 @@
     /**
      * Mongo collection
      */
-    protected static $collection = NULL;
+    private static $collections = array(
+      '_anonymous' => array()
+    );
     
     /**
      * Mongo find timeout
@@ -51,7 +53,7 @@
      * @param mixed $connection the connection variable either Mongo resource or mongo DSN
      * @param array $options as defined in the link above
      */
-    public static function mongoSetConnection($connection = 'localhost', $options = array('connect' => FALSE)) {
+    public static function mongoSetConnection($connection = NULL, $options = array('connect' => FALSE)) {
       // If is an existing connection
       if(is_object($connection) && get_class($connection) == 'Mongo') {
         // Set connection if connected
@@ -64,15 +66,22 @@
         try {
           self::$connection->connect();
           self::$connection->close();
+          return;
         }
         catch(MongoException $e) {
           throw new CoreMongoRecordException("Could not connect to Mongo server, $connection: {$e->getMessage()}");
         }
       }
       
+      if(!is_string($connection)) {
+        $connection = 'mongodb://localhost:27017';
+      }
+      
       // Connect based on given dsn
       try {
         self::$connection = new \Mongo($connection, $options);
+        self::$connection->connect();
+        self::$connection->close();
       }
       catch(MongoException $e) {
         throw new CoreMongoRecordException("Could not connect to Mongo server, $connection: {$e->getMessage()}");
@@ -130,16 +139,16 @@
      * @return MongoCollection
      */
     protected static function &mongoGetCollection() {
-      $collection_name = get_called_class();
-      $collection =& self::$collection;
+      $class_name = get_called_class();
+        $collection_name = $class_name;
       
       // Anonymous MongoRecords
-      if(self::mongoIsAnonymous()) {
-        if(!is_array(self::$collection)) {
-          self::$collection = array();
-        }
+      if(static::mongoIsAnonymous()) {
         $collection_name = func_get_arg(0);
-        $collection =& self::$collection[$collection_name];
+        $collection =& self::$collections['_anonymous'][$collection_name];
+      }
+      else {     
+        $collection =& self::$collections[$class_name];
       }
       
       // The collection hasn't been opened

@@ -30,7 +30,9 @@
     /**
      * @var array
      */
-    protected $__meta = array();
+    protected $__meta = array(
+      'strict_schema' => FALSE
+    );
     
     /**
      * @uses stores the attributes for the record
@@ -48,6 +50,18 @@
      * @var BOOL
      */
   	private $new = TRUE;
+    
+    /**
+     * @uses if data has changed
+     * @var BOOL
+     */
+    private $dirty = FALSE;
+    
+    /**
+     * 
+     * 
+     */
+    protected static $collection = NULL;
     
     /**
      * 
@@ -262,6 +276,17 @@
   		if($new) {
         $this->new = TRUE;
         
+        $current_key = key($attributes);
+        if(strpos($current_key, '$') === 0) {
+          if($current_key === '$intersectArray' && is_array($attributes[$current_key]) && count($attributes[$current_key]) === 2) {
+            $attributes = MongoRecordHelper::intersectArray($attributes[$current_key][0], $attributes[$current_key][1]);
+          }
+          
+          if($current_key === '$merge' && is_array($attributes[$current_key]) && count($attributes[$current_key]) == 2) {
+            $attributes = MongoRecordHelper::mergeArray($attributes[$current_key][0], $attributes[$current_key][1]);
+          }
+        }
+        
         // Set attributes based using their setters
         foreach($attributes as $attribute => $value) {
           $this->setter($attribute, $value);
@@ -321,6 +346,13 @@
      */
     public function __get($attribute) {
       return $this->getter($attribute);
+    }
+    
+    /**
+     * Get all attributes
+     */
+    public function toArray() {
+      return $this->attributes;
     }
 
     /**
@@ -439,6 +471,10 @@
         $this->{$method}($value);
       }
       else {
+        if($this->__meta['strict_schema'] === TRUE && !isset($this->attributes[$attribute])) {
+          return FALSE;
+        }
+        
         $this->attributes[$attribute] = $value;
       }
     }
@@ -472,7 +508,6 @@
   				if($this->{$method}($attribute) !== TRUE) {
   					return FALSE;
   				}
-          var_dump($this->{$method}($attribute));
   			}
   		}
 
