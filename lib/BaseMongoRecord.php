@@ -30,15 +30,20 @@
     /**
      * @var array
      */
-    protected $__meta = array(
+    public $__meta = array(
       'strict_schema' => FALSE
     );
+    
+    /**
+     * 
+     */
+    public $_errors = array();
     
     /**
      * @uses stores the attributes for the record
      * @var array
      */
-  	protected $attributes = array();
+  	public $attributes = array();
     
     /**
      * @var array
@@ -393,6 +398,20 @@
       
   		return $is_valid;
   	}
+    
+    /**
+     * Add error
+     */
+    public function _addError($key, $message = '') {
+      if(empty($message)) {
+        $message = 'Invalid data.';
+      }
+      
+      if(empty($this->_errors[$key])) {
+        $this->_errors[$key] = array();
+      }
+      $this->_errors[$key][] = $message;
+    }
 
     /**
      * Save the object to the Mongo Record
