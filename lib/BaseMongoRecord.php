@@ -234,7 +234,7 @@
         $callbacks =& self::$event_callbacks;
       }
       
-      if(isset($callbacks[$event]) && is_array($callbacks[$events])) {
+      if(isset($callbacks[$event]) && is_array($callbacks[$event])) {
         foreach($callbacks[$event] as $callback) {
           if(is_callable($callback)) {
             call_user_func($callback, $scope);
