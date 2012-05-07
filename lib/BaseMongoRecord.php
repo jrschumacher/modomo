@@ -365,8 +365,14 @@
      * 
      * @return string the id of the Mongo document
      */
-    public function getID() {
-      return $this->attributes['_id'];
+    public function getId($to_string = FALSE) {
+      if(is_object($this->attributes['_id'])) {
+        if($to_string) {
+          return $this->attributes['_id']->__toString();
+        }
+        return $this->attributes['_id'];
+      }
+      return FALSE;
     }
     
     /**
@@ -374,8 +380,13 @@
      * 
      * @param string $id new id for the Mongo document
      */
-    public function setID($id) {
-      $this->attributes['_id'] = $id;
+    public function setId($id) {
+      if(is_string($id)) {
+        $this->attributes['_id'] = new \MongoId($id); 
+      } else if(get_class($id) === 'MongoId') {
+        $this->attributes['_id'] = $id;
+      }
+      return FALSE;
     }
 
     /**
@@ -545,6 +556,9 @@
       if(isset($opts['id']) && $opts['id'] === 'string') {
         $attributes['id'] = $attributes['_id']->{'$id'};
         unset($attributes['_id']); 
+      } else {
+        $attributes['id'] = $attributes['_id'];
+        unset($attributes['_id']);
       }
       return $attributes;
     }
