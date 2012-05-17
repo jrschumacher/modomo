@@ -163,11 +163,11 @@
         $collection_name = $inflector->tableize($collection_name);
     
         if(self::$database == NULL) {
-          throw new Exception("CoreMongoRecord::database must be initialized to a proper database string");
+          throw new \Exception("CoreMongoRecord::database must be initialized to a proper database string");
         }
     
         if(self::$connection == NULL) {
-          throw new Exception("CoreMongoRecord::connection must be initialized to a valid Mongo object");
+          throw new \Exception("CoreMongoRecord::connection must be initialized to a valid Mongo object");
         }
         
         if(!(self::$connection->connected)) {
