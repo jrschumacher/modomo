@@ -476,6 +476,8 @@
       
       // Trigger after remove event
       self::triggerEvent('afterRemove', $this, $this->__meta['collection_name']);
+      
+      return TRUE;
     }
 
     /**
