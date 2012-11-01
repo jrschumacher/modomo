@@ -1,0 +1,25 @@
+{
+    "name": "jrschumacher/mongodm",
+    "type": "library",
+    "description": "Light PHP ODM for MongoDB",
+    "keywords": ["mongodb", "odm", "php"],
+    "time": "2012-01-01",
+    "homepage": "https://github.com/jrschumacher/mongodm",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ryan Hamilton-Schumacher"
+            "homepage": "https://github.com/jrschumacher"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.2"
+    },
+    "autoload": {
+        "psr-0": {
+            "mongodm": "src/"
+        }
+    }
+    "bin": ["bin/mongodm"]
+}
