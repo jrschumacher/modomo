@@ -17,9 +17,11 @@
         "php": ">=5.3.2"
     },
     "autoload": {
-        "psr-0": {
-            "Modomo": "src/"
-        }
+        "psr-0": { "Modomo": "lib/" }
     },
-    "bin": ["bin/modomo"]
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.5.x-dev"
+        }
+    }
 }
