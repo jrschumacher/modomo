@@ -54,7 +54,7 @@ Using MongoDM is as simple as declaring classes that are extensions of the base 
 ?>
 ```
 
-```
+```php
 <?php
     use Modomo\MongoClient;
     use Documents\Person;

@@ -1,9 +1,9 @@
 {
     "name": "jrschumacher/modomo",
     "type": "library",
-    "description": "Light PHP ODM for MongoDB",
+    "description": "Light, proxy centric, evented PHP ODM for MongoDB",
     "keywords": ["mongodb", "odm", "php"],
-    "time": "2012-01-01",
+    "time": "2013-01-18",
     "homepage": "https://github.com/jrschumacher/modomo",
     "license": "MIT",
     "authors": [
