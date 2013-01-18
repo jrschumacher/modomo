@@ -1,14 +1,14 @@
 {
-    "name": "jrschumacher/mongodm",
+    "name": "jrschumacher/modomo",
     "type": "library",
     "description": "Light PHP ODM for MongoDB",
     "keywords": ["mongodb", "odm", "php"],
     "time": "2012-01-01",
-    "homepage": "https://github.com/jrschumacher/mongodm",
+    "homepage": "https://github.com/jrschumacher/modomo",
     "license": "MIT",
     "authors": [
         {
-            "name": "Ryan Hamilton-Schumacher"
+            "name": "Ryan Hamilton-Schumacher",
             "homepage": "https://github.com/jrschumacher"
         }
     ],
@@ -18,8 +18,8 @@
     },
     "autoload": {
         "psr-0": {
-            "mongodm": "src/"
+            "Modomo": "src/"
         }
-    }
-    "bin": ["bin/mongodm"]
+    },
+    "bin": ["bin/modomo"]
 }
