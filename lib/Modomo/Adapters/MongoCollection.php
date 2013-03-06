@@ -108,7 +108,7 @@ class MongoCollection
      * Querys this collection, returning a single element
      */
     public function findOne($query = array(), $fields = array()) {
-        $doc = $this->_collection->find($query, $fields);
+        $doc = $this->_collection->findOne($query, $fields);
         return $this->getDocument($doc);
     }
 
