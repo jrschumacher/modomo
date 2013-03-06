@@ -54,11 +54,19 @@ abstract class Document
      */
     public function __construct($doc, $collection) 
     {
+        // New document
+        if($doc === null)
+        {
+            $doc = array();
+        }
+
         // Validate doc
-        $this->_doc = $doc;
-        if(!is_array($doc)) {
+        if(!is_array($doc))
+        {
             throw new \RuntimeException('$data must be array.');
         }
+
+        $this->_doc = $doc;
 
         // Validate collection
         $this->_collection = $collection;
