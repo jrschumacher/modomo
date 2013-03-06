@@ -11,6 +11,7 @@
 
 namespace Modomo\Adapters;
 
+use Modomo\Config;
 use Modomo\Helpers\Inflector;
 
 class MongoCollection
@@ -54,13 +55,23 @@ class MongoCollection
 
         $name = Inflector::getInstance()->camelize($this->_collection->getName());
 
-        $this->_collectionModel = '\\Collections\\'.Inflector::getInstance()->camelize($name);
+        $searchKeys = array(
+            '{{mongo.coll}}'
+        );
+        $searchVars = array(
+            Inflector::getInstance()->camelize($name)
+        );
+
+        $collectionClass = str_replace($searchKeys, $searchVars, Config::$collectionClass);
+        $documentClass = str_replace($searchKeys, $searchVars, Config::$documentClass);
+
+        $this->_collectionModel = '\\'.Config::$collectionNS.'\\'.$collectionClass;
         if(!class_exists($this->_collectionModel))
         {
             throw new \RuntimeException($this->_collectionModel.' was not found. Must have a collection model.');
         }
 
-        $this->_documentModel = '\\Documents\\'.Inflector::getInstance()->camelize($name);
+        $this->_documentModel = '\\'.Config::$documentNS.'\\'.$documentClass;
         if(!class_exists($this->_documentModel))
         {
             $this->_documentModel = false;
