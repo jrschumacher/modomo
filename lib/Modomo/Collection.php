@@ -93,7 +93,6 @@ abstract class Collection
 
     public function __call($name, $arguments)
     {
-        print $name;
         $return = call_user_func_array(array($this->_collection, $name), $arguments);
         return $return;
     }
