@@ -52,7 +52,7 @@ abstract class Document
      * 
      * Build the model
      */
-    public function __construct($doc, $collection) 
+    public function __construct($doc, $collection)
     {
         // New document
         if($doc === null)
@@ -66,7 +66,16 @@ abstract class Document
             throw new \RuntimeException('$data must be array.');
         }
 
-        $this->_doc = $doc;
+        if(!isset($doc['_id']) || $doc['_id'] instanceof \MongoId)
+        {
+            $this->_doc = $doc;
+        }
+        else
+        {
+            foreach($doc as $k => $v) {
+                $this->_setter($k, $v);
+            }
+        }
 
         // Validate collection
         $this->_collection = $collection;
@@ -121,6 +130,11 @@ abstract class Document
             return $this;
         }
 
+        if(empty($this->_doc))
+        {
+            throw new \Exception('Modomo cannot save an empty document');
+        }
+
         if($this->_new)
         {
             $this->_collection->triggerEvent('beforeSaveNew', $this);
@@ -164,7 +178,7 @@ abstract class Document
         $this->_collection->remove(array('_id' => $this->_doc['_id']));
 
         $this->_collection->triggerEvent('afterRemove', $this);
-      
+
         return $this;
     }
 
@@ -174,6 +188,9 @@ abstract class Document
     protected function _setter($name, $value = null, $force = false) 
     {
         $camelName = Inflector::getInstance()->camelize($name);
+        if($name === '_id') {
+            $camelName = 'Id';
+        }
 
         if(method_exists($this, 'validates'.$camelName))
         {
@@ -207,6 +224,10 @@ abstract class Document
      */
     protected function _getter($name)
     {
+        if($name === '_id') {
+            $camelName = 'Id';
+        }
+
         if(!isset($this->_doc[$name])) 
         {
             return null;

@@ -81,20 +81,22 @@ class MongoCollection
     /**
      * Get collection model
      */
-    public function getCollection($cursor = null) {
-        return new $this->_collectionModel($this, $cursor);
+    public function &getCollection($cursor = null) {
+        $coll = new $this->_collectionModel($this, $cursor);
+        return $coll;
     }
 
     /**
      * Get document model
      */
-    public function getDocument($doc, $cursor = null) {
+    public function &getDocument($doc, $cursor = null) {
         if(empty($this->_documentModel))
         {
             return $doc;
         }
         else {
-            return new $this->_documentModel($doc, $this->getCollection(), $cursor);
+            $doc = new $this->_documentModel($doc, $this->getCollection(), $cursor);
+            return $doc;
         }
     }
 
@@ -110,17 +112,29 @@ class MongoCollection
     /**
      * Querys this collection, returning a MongoCursor for the result set
      */
-    public function find($query = array(), $fields = array()) {
-        $cursor = $this->_collection->find($query, $fields);
-        return new MongoCursor($cursor, $this->getCollection($cursor));
+    public function &find($query = array(), $fields = array()) {
+        $res = null;
+        $docs = $this->_collection->find($query, $fields);
+
+        if(!empty($docs))
+        {
+            $res = new MongoCursor($docs, $this->getCollection($docs));
+        }
+        return $res;
     }
 
     /**
      * Querys this collection, returning a single element
      */
-    public function findOne($query = array(), $fields = array()) {
+    public function &findOne($query = array(), $fields = array()) {
+        $res = null;
         $doc = $this->_collection->findOne($query, $fields);
-        return $this->getDocument($doc);
+
+        if(!empty($doc))
+        {
+            $res = $this->getDocument($doc);
+        }
+        return $res;
     }
 
     /**** Proxied ****/
