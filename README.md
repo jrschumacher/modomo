@@ -1,5 +1,8 @@
 # Modomo (mŏ-dŏ-mŏ)
 
+[![Latest Stable Version](https://poser.pugx.org/jrschumacher/modomo/version.png)](https://packagist.org/packages/jrschumacher/modomo)
+[![Latest Unstable Version](https://poser.pugx.org/jrschumacher/modomo/v/unstable.png)](https://packagist.org/packages/jrschumacher/modomo)
+
 Modomo is a lightweight, event based PHP MongoDB ODM
 
 Designed for the benefits of ODMs (getters and setters, validation and helpers) while maintaining a quick development and low entry level.
