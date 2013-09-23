@@ -236,9 +236,11 @@ abstract class Document
         $method = 'get'.Inflector::getInstance()->camelize($name);
         if(method_exists($this, $method))
         {
-            return $this->{$method}();
+            $value = $this->{$method}();
         }
-        return $this->_doc[$name];    
+        $value = $this->_doc[$name];
+
+        return $this->_stdDataType($value);
     }
 
     /**
@@ -295,6 +297,53 @@ abstract class Document
         }
 
         return $doc;
+    }
+
+    /**
+     * To mongo data type
+     * 
+     * @param mixed $data Data to convert to Mongo
+     */
+    public function _toMongoType($data, $type = null)
+    {
+        if($type == 'id')
+        {
+            return new MongoId($data);
+        }
+
+        if($data instanceof DateTime)
+        {
+            return new MongoDate($data->getTimestamp());
+        }
+        if($type == 'date')
+        {
+            return new MongoDate($data->getTimestamp());
+        }
+    }
+
+    /**
+     * To general data type
+     *
+     * @param mixed $data Data to convert to general
+     */
+    public function _toGeneralType($data)
+    {
+        if($data instanceof MongoDate)
+        {
+            return new DateTime('@'.$data->sec);
+        }
+
+        if($data instanceof MongoId)
+        {
+            return (string) $data;
+        }
+
+        if($data instanceof DBRef)
+        {
+            // Need to determine how to handle this...
+            // ... either send a request to mongo
+            // ... or come up with a standard format to provide a psuedo view
+        }
     }
 
     /**
