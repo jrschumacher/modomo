@@ -1,3 +1,5 @@
+# THIS REPO IS NO LONGER MAINTAINED. PLEASE USE https://github.com/purekid/mongodm
+
 # Modomo (mŏ-dŏ-mŏ)
 
 [![Latest Stable Version](https://poser.pugx.org/jrschumacher/modomo/version.png)](https://packagist.org/packages/jrschumacher/modomo)
